@@ -1,12 +1,15 @@
 const express = require("express");
 const app = express();
 const fetch = require("node-fetch");
-const { createCanvas, loadImage } = require("canvas");
+const { createCanvas, loadImage, registerFont } = require("canvas");
 const canvas = createCanvas(500, 200);
 let ctx = canvas.getContext("2d");
 
+registerFont("./impact.ttf", { family: "Impact" });
+
 const bannerTemplate = "https://i.imgur.com/6v1EpTj.png";
-let { imgurToken } = require("./token.json");
+let imgurToken = process.env.IMGURTOKEN;
+let albumID = "BQy1UdR";
 
 function wrapText(context, text, x, y, maxWidth, lineHeight) {
     var words = text.split(' ');
@@ -48,9 +51,10 @@ async function drawBanner(avatar, username) {
         method: "post",
         body: JSON.stringify({
             "type": 'base64',
-            "image": img
+            "image": img,
+            "album": albumID
         }),
-        headers: { "Authorization": `Client-ID ${imgurToken}`, 'Content-Type': 'application/json' }
+        headers: { "Authorization": `Bearer ${imgurToken}`, 'Content-Type': 'application/json' }
     })
         .then(res => res.json())
         .catch(() => {
@@ -68,11 +72,9 @@ async function drawBanner(avatar, username) {
 
 app.use(express.json())
 
-app.post("/", (req, res) => {
-    /**
-     * @typedef {String} avatarURL
-     * @typedef {String} userTag
-     */
+app.get('/', (req, res) => res.send("a."));
+
+app.post("/banner", (req, res) => {
     let avatarURL = req.body.avatarURL,
         userTag = req.body.userTag;
 
